@@ -1,12 +1,8 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:realm/realm.dart';
 import 'package:realm_test/models/person_model.dart';
 import 'package:realm_test/screens/widgets/form_field_widget.dart';
 import 'package:realm_test/services/realm_functions.dart';
-
-import '../models/contact_model.dart';
 import 'list_person.dart';
 
 class HomePage extends StatefulWidget {
@@ -19,9 +15,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   // late Realm realm;
 
-  _HomePageState() {
-    RealmFunctions.instance.realm = Realm(RealmFunctions.instance.config);
-  }
+  // _HomePageState() {
+    
+  // }
+
+  
+  
 
   TextEditingController nameController = TextEditingController();
   TextEditingController ageController = TextEditingController();
@@ -30,7 +29,14 @@ class _HomePageState extends State<HomePage> {
   TextEditingController idController = TextEditingController();
   @override
   void initState() {
+    // final config = Configuration.local([PersonModel.schema, Contact.schema]);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      var loggedInUser =  RealmFunctions.instance.loggedInUser!;
+      final config = Configuration.flexibleSync( loggedInUser, [PersonModel.schema,PersonModelContact.schema]);
+      RealmFunctions.instance.realm = Realm(config);
 
+    RealmFunctions.instance.subscription();
+    });
     super.initState();
   }
 
@@ -84,12 +90,13 @@ class _HomePageState extends State<HomePage> {
                 child: InkWell(
                   onTap: (){
                     var person = PersonModel(
-                      idController.text,
+                      idController.text.toString(),
                       name: nameController.text,
                       age: int.parse(ageController.text),  
-                      contact: Contact(
+                      contact: PersonModelContact(
+                        phone: phoneController.text,
                         email: emailController.text,
-                        phone: phoneController.text
+                        
                       )
       
                     );

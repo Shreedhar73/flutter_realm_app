@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:realm/realm.dart';
-
-import '../models/contact_model.dart';
 import '../models/person_model.dart';
 
 class RealmFunctions{
@@ -10,10 +8,18 @@ class RealmFunctions{
   static final _instance = RealmFunctions._();
   static RealmFunctions get instance => _instance;
 
+  final app = App(AppConfiguration("realmtest-hldgg"));
+  User? loggedInUser;
+
   late Realm realm;
-  final config = Configuration.local([PersonModel.schema,Contact.schema]);
+  
   // realm = Realm(config);
 
+
+  anyonmousLogin() async{
+    var user = await app.logIn(Credentials.anonymous());
+    loggedInUser = user;
+  }
   getListOfPerson() {
     return realm.all<PersonModel>();
   }
@@ -23,6 +29,7 @@ class RealmFunctions{
       realm.write(() {
         realm.add(person);
       });
+      subscription();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Person Added Successfully")
@@ -48,5 +55,13 @@ class RealmFunctions{
           content: Text("Person Deleted  Successfully")
         )
       );
+  }
+
+  //subscription for sync
+  subscription() async{
+    realm.subscriptions.update((mutableSubscriptions) {
+      mutableSubscriptions.add(realm.all<PersonModel>());
+     });
+     await realm.subscriptions.waitForSynchronization();
   }
 }
